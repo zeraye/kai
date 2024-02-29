@@ -1,13 +1,13 @@
 import { Chess } from "chess.js";
 
-import { useState } from "react";
+import { useMemo } from "react";
 
 import Analysis from "./components/Analysis/Analysis";
 import Chessboard from "./components/Chessboard/Chessboard";
 import Timer from "./components/Timer/Timer";
 
 const App = () => {
-  const [chess, setChess] = useState(new Chess());
+  const chess = useMemo(() => new Chess(), []);
 
   return (
     <div
