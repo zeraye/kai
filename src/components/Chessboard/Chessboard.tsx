@@ -1,9 +1,10 @@
 import { useMeasure } from "@uidotdev/usehooks";
-import { Chess } from "chess.js";
+import { Chess, Move } from "chess.js";
 
 import { useEffect, useState } from "react";
 
 import PieceType from "../../../interfaces/PieceType";
+import HighlightedSquare from "./HighlightedSquare/HighlightedSquare";
 import Piece from "./Piece/Piece";
 
 interface ChessboardProps {
@@ -12,6 +13,9 @@ interface ChessboardProps {
 
 const Chessboard = ({ chess }: ChessboardProps) => {
   const [pieces, setPieces] = useState<PieceType[]>([]);
+  const [selectedPiece, setSelectedPiece] = useState<PieceType | null>(null);
+  const [possibleMovesWithSelectedPiece, setPossibleMovesWithSelectedPiece] =
+    useState<Move[]>([]);
 
   const [ref, { width }] = useMeasure();
 
@@ -27,7 +31,30 @@ const Chessboard = ({ chess }: ChessboardProps) => {
       }
     }
     setPieces(newPieces);
-  }, [chess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chess.fen()]);
+
+  const setSelectedPieceHandler = (newSelectedPiece: PieceType) => {
+    if (selectedPiece && newSelectedPiece.square === selectedPiece.square) {
+      setSelectedPiece(null);
+      setPossibleMovesWithSelectedPiece([]);
+      return;
+    }
+    setSelectedPiece(newSelectedPiece);
+    setPossibleMovesWithSelectedPiece(
+      chess.moves({ ...newSelectedPiece, verbose: true }),
+    );
+  };
+
+  const makeMoveHandler = (move: Move) => {
+    if (selectedPiece === null) {
+      console.error("Cannot make move, while selected piece is null!");
+      return;
+    }
+    chess.move(move);
+    setSelectedPiece(null);
+    setPossibleMovesWithSelectedPiece([]);
+  };
 
   return (
     <div>
@@ -40,9 +67,24 @@ const Chessboard = ({ chess }: ChessboardProps) => {
           aspectRatio: 1,
           margin: "auto",
         }}
+        key={chess.fen()}
       >
         {pieces.map((piece) => (
-          <Piece piece={piece} width={width} key={piece.square} />
+          <Piece
+            piece={piece}
+            width={width}
+            key={piece.square}
+            setSelectedPieceHandler={setSelectedPieceHandler}
+            selected={piece === selectedPiece}
+          />
+        ))}
+        {possibleMovesWithSelectedPiece.map((move) => (
+          <HighlightedSquare
+            move={move}
+            width={width}
+            makeMoveHandler={makeMoveHandler}
+            key={move.after}
+          />
         ))}
       </div>
     </div>
