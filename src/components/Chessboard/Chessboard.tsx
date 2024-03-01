@@ -4,6 +4,7 @@ import { Chess, Move } from "chess.js";
 import { useEffect, useState } from "react";
 
 import PieceType from "../../../interfaces/PieceType";
+import MakeMoveMiniMax from "../../MiniMax";
 import HighlightedSquare from "./HighlightedSquare/HighlightedSquare";
 import Piece from "./Piece/Piece";
 
@@ -54,6 +55,7 @@ const Chessboard = ({ chess }: ChessboardProps) => {
     chess.move(move);
     setSelectedPiece(null);
     setPossibleMovesWithSelectedPiece([]);
+    MakeMoveMiniMax(chess);
   };
 
   return (
