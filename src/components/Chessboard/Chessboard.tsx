@@ -19,6 +19,7 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
   const [possibleMovesWithSelectedPiece, setPossibleMovesWithSelectedPiece] =
     useState<Move[]>([]);
   const [worker, setWorker] = useState<Worker | null>(null);
+  const [blockSelecting, setBlockSelecting] = useState(false);
 
   const [ref, { width }] = useMeasure();
 
@@ -37,6 +38,7 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
         });
       } else {
         chess.move(event.data.bestMove);
+        setBlockSelecting(false);
       }
     };
 
@@ -68,6 +70,9 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
       setPossibleMovesWithSelectedPiece([]);
       return;
     }
+    if (blockSelecting) {
+      return;
+    }
     setSelectedPiece(newSelectedPiece);
     setPossibleMovesWithSelectedPiece(
       chess.moves({ ...newSelectedPiece, verbose: true }),
@@ -86,6 +91,7 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
     chess.move(move);
     setSelectedPiece(null);
     setPossibleMovesWithSelectedPiece([]);
+    setBlockSelecting(true);
     worker.postMessage(chess.fen());
   };
 
