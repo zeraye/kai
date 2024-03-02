@@ -25,7 +25,7 @@ const App = () => {
       }}
     >
       <Analysis analysis={analysis} />
-      <Chessboard chess={chess} />
+      <Chessboard chess={chess} setAnalysis={setAnalysis} />
       <Timer />
     </div>
   );

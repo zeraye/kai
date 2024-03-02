@@ -3,22 +3,49 @@ import { Chess, Move } from "chess.js";
 
 import { useEffect, useState } from "react";
 
+import AnalysisType from "../../../interfaces/AnalysisType";
 import PieceType from "../../../interfaces/PieceType";
-import MakeMoveMiniMax from "../../MiniMax";
 import HighlightedSquare from "./HighlightedSquare/HighlightedSquare";
 import Piece from "./Piece/Piece";
 
 interface ChessboardProps {
   chess: Chess;
+  setAnalysis: React.Dispatch<React.SetStateAction<AnalysisType>>;
 }
 
-const Chessboard = ({ chess }: ChessboardProps) => {
+const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
   const [pieces, setPieces] = useState<PieceType[]>([]);
   const [selectedPiece, setSelectedPiece] = useState<PieceType | null>(null);
   const [possibleMovesWithSelectedPiece, setPossibleMovesWithSelectedPiece] =
     useState<Move[]>([]);
+  const [worker, setWorker] = useState<Worker | null>(null);
 
   const [ref, { width }] = useMeasure();
+
+  useEffect(() => {
+    // minimax worker
+    const mmWorker = new Worker(
+      new URL("../../workers/minimax.ts", import.meta.url),
+      { type: "module" },
+    );
+    mmWorker.onmessage = (event) => {
+      if ("depth" in event.data) {
+        setAnalysis({
+          depth: event.data.depth,
+          evaluation: event.data.evaluation,
+          bestMove: event.data.bestMove,
+        });
+      } else {
+        chess.move(event.data.bestMove);
+      }
+    };
+
+    setWorker(mmWorker);
+
+    return () => {
+      mmWorker.terminate();
+    };
+  }, [chess, setAnalysis]);
 
   useEffect(() => {
     const newPieces: PieceType[] = [];
@@ -52,10 +79,14 @@ const Chessboard = ({ chess }: ChessboardProps) => {
       console.error("Cannot make move, while selected piece is null!");
       return;
     }
+    if (worker === null) {
+      console.error("Cannot make move, while worker is null!");
+      return;
+    }
     chess.move(move);
     setSelectedPiece(null);
     setPossibleMovesWithSelectedPiece([]);
-    MakeMoveMiniMax(chess);
+    worker.postMessage(chess.fen());
   };
 
   return (

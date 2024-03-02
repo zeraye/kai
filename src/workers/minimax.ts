@@ -1,6 +1,6 @@
 import { Chess, Move, PieceSymbol } from "chess.js";
 
-const MAX_DEPTH = 5;
+const MAX_DEPTH = 99;
 
 const pieceToValue: { [type in PieceSymbol]: number } = {
   p: 100,
@@ -39,7 +39,7 @@ const evalPosition = (chess: Chess): number => {
   return bestEval;
 };
 
-const MiniMaxRecursive = (
+const CalcMiniMaxRecursive = (
   chess: Chess,
   alphabeta: {
     alpha: number;
@@ -64,7 +64,12 @@ const MiniMaxRecursive = (
     const chessCopy = new Chess(chess.fen());
     chessCopy.move(move);
 
-    const newEval = MiniMaxRecursive(chessCopy, alphabeta, depth - 1, !isMax);
+    const newEval = CalcMiniMaxRecursive(
+      chessCopy,
+      alphabeta,
+      depth - 1,
+      !isMax,
+    );
 
     if (isMax) {
       if (newEval > bestEval) {
@@ -91,7 +96,7 @@ const MiniMaxRecursive = (
   return bestEval;
 };
 
-const MiniMax = (chess: Chess, depth: number): [Move | null, number] => {
+const CalcMiniMax = (chess: Chess, depth: number): [Move | null, number] => {
   const isMax = chess.turn() === "w";
 
   const alphabeta = {
@@ -106,7 +111,7 @@ const MiniMax = (chess: Chess, depth: number): [Move | null, number] => {
     const chessCopy = new Chess(chess.fen());
     chessCopy.move(move);
 
-    const newEval = MiniMaxRecursive(chessCopy, alphabeta, depth, !isMax);
+    const newEval = CalcMiniMaxRecursive(chessCopy, alphabeta, depth, !isMax);
 
     if ((newEval > bestEval && isMax) || (newEval < bestEval && !isMax)) {
       bestMove = move;
@@ -121,27 +126,34 @@ const MakeMoveMiniMax = (chess: Chess) => {
   let bestMove: Move | null = null;
   let bestEval: number | null = null;
 
-  for (let depth = 1; depth < MAX_DEPTH; ++depth) {
+  for (let depth = 1; depth <= MAX_DEPTH; ++depth) {
     try {
-      [bestMove, bestEval] = MiniMax(chess, depth);
+      [bestMove, bestEval] = CalcMiniMax(chess, depth);
+      postMessage({
+        depth: depth,
+        evaluation: bestEval,
+        bestMove: bestMove,
+      });
     } catch (error) {
       console.error(error);
       break;
     }
   }
 
-  console.log(bestMove, bestEval);
-
   if (bestMove === null || bestEval === null) {
     console.error("Error in minimax. Making random move...");
-    const moves = chess.moves();
-    chess.move(moves[Math.floor(Math.random() * moves.length)]);
-    return 0;
+    const moves = chess.moves({ verbose: true });
+    bestMove = moves[Math.floor(Math.random() * moves.length)];
+    bestEval = 0;
   }
 
-  chess.move(bestMove);
-
-  return bestEval;
+  // Message without depth means end of calculation
+  postMessage({
+    evaluation: bestEval,
+    bestMove: bestMove,
+  });
 };
 
-export default MakeMoveMiniMax;
+onmessage = function (event) {
+  MakeMoveMiniMax(new Chess(event.data));
+};
