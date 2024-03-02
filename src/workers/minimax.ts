@@ -1,6 +1,7 @@
 import { Chess, Move, PieceSymbol } from "chess.js";
 
 const MAX_DEPTH = 99;
+const TIME_LIMIT_MS = 3000;
 
 const pieceToValue: { [type in PieceSymbol]: number } = {
   p: 100,
@@ -47,7 +48,11 @@ const CalcMiniMaxRecursive = (
   },
   depth: number,
   isMax: boolean,
+  start: number,
 ): number => {
+  if (Date.now() - start > TIME_LIMIT_MS)
+    throw new Error("Time limit exceeded");
+
   if (chess.isGameOver() || depth === 0) {
     return evalPosition(chess);
   }
@@ -69,6 +74,7 @@ const CalcMiniMaxRecursive = (
       alphabeta,
       depth - 1,
       !isMax,
+      start,
     );
 
     if (isMax) {
@@ -96,7 +102,11 @@ const CalcMiniMaxRecursive = (
   return bestEval;
 };
 
-const CalcMiniMax = (chess: Chess, depth: number): [Move | null, number] => {
+const CalcMiniMax = (
+  chess: Chess,
+  depth: number,
+  start: number,
+): [Move | null, number] => {
   const isMax = chess.turn() === "w";
 
   const alphabeta = {
@@ -111,7 +121,13 @@ const CalcMiniMax = (chess: Chess, depth: number): [Move | null, number] => {
     const chessCopy = new Chess(chess.fen());
     chessCopy.move(move);
 
-    const newEval = CalcMiniMaxRecursive(chessCopy, alphabeta, depth, !isMax);
+    const newEval = CalcMiniMaxRecursive(
+      chessCopy,
+      alphabeta,
+      depth,
+      !isMax,
+      start,
+    );
 
     if ((newEval > bestEval && isMax) || (newEval < bestEval && !isMax)) {
       bestMove = move;
@@ -126,22 +142,26 @@ const MakeMoveMiniMax = (chess: Chess) => {
   let bestMove: Move | null = null;
   let bestEval: number | null = null;
 
+  const start = Date.now();
+
+  let minimaxError: unknown | null = null;
+
   for (let depth = 1; depth <= MAX_DEPTH; ++depth) {
     try {
-      [bestMove, bestEval] = CalcMiniMax(chess, depth);
+      [bestMove, bestEval] = CalcMiniMax(chess, depth, start);
       postMessage({
         depth: depth,
         evaluation: bestEval,
         bestMove: bestMove,
       });
     } catch (error) {
-      console.error(error);
+      minimaxError = error;
       break;
     }
   }
 
   if (bestMove === null || bestEval === null) {
-    console.error("Error in minimax. Making random move...");
+    console.error(`Error in minimax: ${minimaxError}. Making random move...`);
     const moves = chess.moves({ verbose: true });
     bestMove = moves[Math.floor(Math.random() * moves.length)];
     bestEval = 0;
