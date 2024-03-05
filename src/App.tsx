@@ -13,6 +13,8 @@ const App = () => {
     depth: 0,
     evaluation: 0,
     bestMove: null,
+    analysedNodes: 0,
+    calcTimeMs: 0,
   });
 
   return (

@@ -35,6 +35,8 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
           depth: event.data.depth,
           evaluation: event.data.evaluation,
           bestMove: event.data.bestMove,
+          analysedNodes: event.data.analysedNodes,
+          calcTimeMs: event.data.calcTimeMs,
         });
       } else {
         chess.move(event.data.bestMove);

@@ -47,9 +47,14 @@ const CalcMiniMaxRecursive = (
   depth: number,
   isMax: boolean,
   start: number,
+  analyse: {
+    analysedNodes: number;
+  },
 ): number => {
   if (Date.now() - start > TIME_LIMIT_MS)
     throw new Error("Time limit exceeded");
+
+  analyse.analysedNodes++;
 
   if (chess.isGameOver() || depth === 0) {
     return evalPosition(chess);
@@ -68,6 +73,7 @@ const CalcMiniMaxRecursive = (
       depth - 1,
       !isMax,
       start,
+      analyse,
     );
 
     if (isMax) {
@@ -90,6 +96,9 @@ const CalcMiniMax = (
   chess: Chess,
   depth: number,
   start: number,
+  analyse: {
+    analysedNodes: number;
+  },
 ): [Move | null, number] => {
   const isMax = chess.turn() === "w";
 
@@ -110,6 +119,7 @@ const CalcMiniMax = (
       depth,
       !isMax,
       start,
+      analyse,
     );
 
     if ((newEval > bestEval && isMax) || (newEval < bestEval && !isMax)) {
@@ -129,13 +139,19 @@ const MakeMoveMiniMax = (chess: Chess) => {
 
   let minimaxError: unknown | null = null;
 
+  const analyse = {
+    analysedNodes: 0,
+  };
+
   for (let depth = 1; depth <= MAX_DEPTH; ++depth) {
     try {
-      [bestMove, bestEval] = CalcMiniMax(chess, depth, start);
+      [bestMove, bestEval] = CalcMiniMax(chess, depth, start, analyse);
       postMessage({
         depth: depth,
         evaluation: bestEval,
         bestMove: bestMove,
+        analysedNodes: analyse.analysedNodes,
+        calcTimeMs: Date.now() - start,
       });
     } catch (error) {
       minimaxError = error;
