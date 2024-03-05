@@ -13,14 +13,14 @@ const Analysis = ({ analysis }: AnalysisProps) => {
       }}
     >
       <div>
-        <h2>Depth searched: {analysis.depth}</h2>
-        <h2>Evaluation: {(analysis.evaluation / 100).toFixed(2)}</h2>
-        <h2>Best move: {analysis.bestMove ? analysis.bestMove.san : "-"}</h2>
-        <h2>Analysed nodes: {analysis.analysedNodes}</h2>
-        <h2>
+        <h3>Depth searched: {analysis.depth}</h3>
+        <h3>Evaluation: {(analysis.evaluation / 100).toFixed(2)}</h3>
+        <h3>Best move: {analysis.bestMove ? analysis.bestMove.san : "-"}</h3>
+        <h3>Analysed nodes: {analysis.analysedNodes}</h3>
+        <h3>
           Analysed nodes per second:{" "}
           {(analysis.analysedNodes / (analysis.calcTimeMs / 1000)).toFixed(0)}
-        </h2>
+        </h3>
       </div>
     </div>
   );
