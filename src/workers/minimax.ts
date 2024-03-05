@@ -1,7 +1,7 @@
 import { Chess, Move, PieceSymbol } from "chess.js";
 
 const MAX_DEPTH = 99;
-const TIME_LIMIT_MS = 3000;
+const TIME_LIMIT_MS = 5000;
 
 const pieceToValue: { [type in PieceSymbol]: number } = {
   p: 100,
@@ -42,10 +42,8 @@ const evalPosition = (chess: Chess): number => {
 
 const CalcMiniMaxRecursive = (
   chess: Chess,
-  alphabeta: {
-    alpha: number;
-    beta: number;
-  },
+  alpha: number,
+  beta: number,
   depth: number,
   isMax: boolean,
   start: number,
@@ -57,45 +55,31 @@ const CalcMiniMaxRecursive = (
     return evalPosition(chess);
   }
 
-  let bestEval = Infinity * (isMax ? -1 : 1);
+  let bestEval = Infinity * (!isMax ? 1 : -1);
 
-  let skipCalculation = false;
-
-  chess.moves().forEach((move) => {
-    if (skipCalculation) {
-      return;
-    }
-
+  chess.moves().some((move) => {
     const chessCopy = new Chess(chess.fen());
     chessCopy.move(move);
 
     const newEval = CalcMiniMaxRecursive(
       chessCopy,
-      alphabeta,
+      alpha,
+      beta,
       depth - 1,
       !isMax,
       start,
     );
 
     if (isMax) {
-      if (newEval > bestEval) {
-        bestEval = newEval;
-      }
-      if (bestEval > alphabeta.alpha) {
-        alphabeta.alpha = bestEval;
-      }
+      bestEval = Math.max(newEval, bestEval);
+      alpha = Math.max(bestEval, alpha);
     } else {
-      if (newEval < bestEval) {
-        bestEval = newEval;
-      }
-      if (bestEval < alphabeta.beta) {
-        alphabeta.beta = bestEval;
-      }
+      bestEval = Math.min(newEval, bestEval);
+      beta = Math.min(bestEval, beta);
     }
 
-    if (alphabeta.beta <= alphabeta.alpha) {
-      skipCalculation = true;
-      return;
+    if (beta <= alpha) {
+      return true;
     }
   });
 
@@ -109,10 +93,8 @@ const CalcMiniMax = (
 ): [Move | null, number] => {
   const isMax = chess.turn() === "w";
 
-  const alphabeta = {
-    alpha: -Infinity,
-    beta: Infinity,
-  };
+  const alpha = -Infinity;
+  const beta = Infinity;
 
   let bestMove: Move | null = null;
   let bestEval = Infinity * (isMax ? -1 : 1);
@@ -123,7 +105,8 @@ const CalcMiniMax = (
 
     const newEval = CalcMiniMaxRecursive(
       chessCopy,
-      alphabeta,
+      alpha,
+      beta,
       depth,
       !isMax,
       start,
