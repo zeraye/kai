@@ -1,7 +1,7 @@
 import { Chess, Move, PieceSymbol } from "chess.js";
 
 const MAX_DEPTH = 99;
-const TIME_LIMIT_MS = 5000;
+const TIME_LIMIT_MS = 8000;
 
 const pieceToValue: { [type in PieceSymbol]: number } = {
   p: 100,
