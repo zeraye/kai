@@ -105,7 +105,7 @@ const CalcMiniMax = (
   const alpha = -Infinity;
   const beta = Infinity;
 
-  let bestMove: Move | null = null;
+  let bestMoves: Move[] = [];
   let bestEval = Infinity * (isMax ? -1 : 1);
 
   chess.moves({ verbose: true }).forEach((move) => {
@@ -123,10 +123,17 @@ const CalcMiniMax = (
     );
 
     if ((newEval > bestEval && isMax) || (newEval < bestEval && !isMax)) {
-      bestMove = move;
+      bestMoves = [move];
       bestEval = newEval;
+    } else if (newEval === bestEval) {
+      bestMoves.push(move);
     }
   });
+
+  const bestMove =
+    bestMoves.length > 0
+      ? bestMoves[Math.floor(Math.random() * bestMoves.length)]
+      : null;
 
   return [bestMove, bestEval];
 };
