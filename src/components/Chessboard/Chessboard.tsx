@@ -1,5 +1,5 @@
 import { useMeasure } from "@uidotdev/usehooks";
-import { Chess, Move } from "chess.js";
+import { BLACK, Chess, Color, Move, WHITE } from "chess.js";
 
 import { useEffect, useState } from "react";
 
@@ -11,15 +11,22 @@ import Piece from "./Piece/Piece";
 interface ChessboardProps {
   chess: Chess;
   setAnalysis: React.Dispatch<React.SetStateAction<AnalysisType>>;
+  player: Color;
+  setLastMoveHandler: (newLastMove: Move) => void;
 }
 
-const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
+const Chessboard = ({
+  chess,
+  setAnalysis,
+  player,
+  setLastMoveHandler,
+}: ChessboardProps) => {
   const [pieces, setPieces] = useState<PieceType[]>([]);
   const [selectedPiece, setSelectedPiece] = useState<PieceType | null>(null);
   const [possibleMovesWithSelectedPiece, setPossibleMovesWithSelectedPiece] =
     useState<Move[]>([]);
   const [worker, setWorker] = useState<Worker | null>(null);
-  const [blockSelecting, setBlockSelecting] = useState(false);
+  const [blockSelecting, setBlockSelecting] = useState(player !== WHITE);
 
   const [ref, { width }] = useMeasure();
 
@@ -40,9 +47,14 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
         });
       } else {
         chess.move(event.data.bestMove);
+        setLastMoveHandler(event.data.bestMove);
         setBlockSelecting(false);
       }
     };
+
+    if (player === BLACK) {
+      mmWorker.postMessage(chess.fen());
+    }
 
     setWorker(mmWorker);
 
@@ -64,7 +76,7 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
     }
     setPieces(newPieces);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chess.fen()]);
+  }, [chess.fen(), blockSelecting]);
 
   const setSelectedPieceHandler = (newSelectedPiece: PieceType) => {
     if (selectedPiece && newSelectedPiece.square === selectedPiece.square) {
@@ -91,6 +103,7 @@ const Chessboard = ({ chess, setAnalysis }: ChessboardProps) => {
       return;
     }
     chess.move(move);
+    setLastMoveHandler(move);
     setSelectedPiece(null);
     setPossibleMovesWithSelectedPiece([]);
     setBlockSelecting(true);
