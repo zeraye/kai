@@ -22,7 +22,13 @@ const App = () => {
     black: 300000,
   });
 
+  // Responsible for managing timer
   useEffect(() => {
+    // Start timer after first move
+    if (chess.history().length === 0) {
+      return;
+    }
+
     const interval = setInterval(
       () =>
         setTimeLimit((oldTimeLimit) => {
