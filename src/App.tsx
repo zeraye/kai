@@ -1,8 +1,9 @@
-import { Chess } from "chess.js";
+import { Chess, WHITE } from "chess.js";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AnalysisType from "../interfaces/AnalysisType";
+import TimeLimitType from "../interfaces/TimeLimitType";
 import Analysis from "./components/Analysis/Analysis";
 import Chessboard from "./components/Chessboard/Chessboard";
 import Timer from "./components/Timer/Timer";
@@ -16,6 +17,28 @@ const App = () => {
     analysedNodes: 0,
     calcTimeMs: 0,
   });
+  const [timeLimit, setTimeLimit] = useState<TimeLimitType>({
+    white: 300000,
+    black: 300000,
+  });
+
+  useEffect(() => {
+    const interval = setInterval(
+      () =>
+        setTimeLimit((oldTimeLimit) => {
+          if (chess.turn() === WHITE) {
+            return { ...oldTimeLimit, white: oldTimeLimit.white - 1000 };
+          } else {
+            return { ...oldTimeLimit, black: oldTimeLimit.black - 1000 };
+          }
+        }),
+      1000,
+    );
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [chess.turn()]);
 
   return (
     <div
@@ -28,7 +51,7 @@ const App = () => {
     >
       <Analysis analysis={analysis} />
       <Chessboard chess={chess} setAnalysis={setAnalysis} />
-      <Timer />
+      <Timer timeLimit={timeLimit} />
     </div>
   );
 };
