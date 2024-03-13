@@ -1,7 +1,90 @@
-import { Chess, Move, PieceSymbol } from "chess.js";
+import { Chess, Color, Move, PieceSymbol, WHITE } from "chess.js";
 
 const MAX_DEPTH = 99;
-const TIME_LIMIT_MS = 8000;
+const TIME_LIMIT_MS = 3000;
+
+const pawnSquareTable = [
+  0, 0, 0, 0, 0, 0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 10, 10, 20, 30, 30,
+  20, 10, 10, 5, 5, 10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, -5, -10,
+  0, 0, -10, -5, 5, 5, 10, 10, -20, -20, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+
+const knightSquareTable = [
+  -50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 0, 0, 0, -20, -40, -30,
+  0, 10, 15, 15, 10, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 15, 20, 20,
+  15, 0, -30, -30, 5, 10, 15, 15, 10, 5, -30, -40, -20, 0, 5, 5, 0, -20, -40,
+  -50, -40, -30, -30, -30, -30, -40, -50,
+];
+
+const bishopSquareTable = [
+  -20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5,
+  10, 10, 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10, 0,
+  -10, -10, 10, 10, 10, 10, 10, 10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20, -10,
+  -10, -10, -10, -10, -10, -20,
+];
+
+const rookSquareTable = [
+  0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0, 0,
+  -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0,
+  -5, -5, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 5, 5, 0, 0, 0,
+];
+
+const queenSquareTable = [
+  -20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0, 5,
+  5, 5, 5, 0, -10, -5, 0, 5, 5, 5, 5, 0, -5, 0, 0, 5, 5, 5, 5, 0, -5, -10, 5, 5,
+  5, 5, 5, 0, -10, -10, 0, 5, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10,
+  -20,
+];
+
+const kingMiddleGameSquareTable = [
+  -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40,
+  -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40,
+  -40, -30, -20, -30, -30, -40, -40, -30, -30, -20, -10, -20, -20, -20, -20,
+  -20, -20, -10, 20, 20, 0, 0, 0, 0, 20, 20, 20, 30, 10, 0, 0, 10, 30, 20,
+];
+
+const kingEndGameSquareTable = [
+  -50, -40, -30, -20, -20, -30, -40, -50, -30, -20, -10, 0, 0, -10, -20, -30,
+  -30, -10, 20, 30, 30, 20, -10, -30, -30, -10, 30, 40, 40, 30, -10, -30, -30,
+  -10, 30, 40, 40, 30, -10, -30, -30, -10, 20, 30, 30, 20, -10, -30, -30, -30,
+  0, 0, 0, 0, -30, -30, -50, -30, -30, -30, -30, -30, -30, -50,
+];
+
+const squareTableEval = (
+  piece: PieceSymbol,
+  color: Color,
+  squareNumber: number,
+  isEndGame: boolean,
+) => {
+  let color_inv = -1.0; // black
+
+  if (color == WHITE) {
+    squareNumber = 63 - squareNumber; // reverse squareTable, 63 is MAX_SQUARE_TABLE_INDEX
+    color_inv = 1.0;
+  }
+
+  switch (piece) {
+    case "p":
+      return pawnSquareTable[squareNumber] * color_inv;
+    case "n":
+      return knightSquareTable[squareNumber] * color_inv;
+    case "b":
+      return bishopSquareTable[squareNumber] * color_inv;
+    case "r":
+      return rookSquareTable[squareNumber] * color_inv;
+    case "q":
+      return queenSquareTable[squareNumber] * color_inv;
+    case "k":
+      if (isEndGame) {
+        return kingEndGameSquareTable[squareNumber] * color_inv;
+      }
+      return kingMiddleGameSquareTable[squareNumber] * color_inv;
+    default:
+      return 0;
+  }
+};
+
+const checkEndGame = (chess: Chess) => chess.moveNumber() > 50;
 
 const pieceToValue: { [type in PieceSymbol]: number } = {
   p: 100,
@@ -9,7 +92,7 @@ const pieceToValue: { [type in PieceSymbol]: number } = {
   b: 330,
   r: 500,
   q: 900,
-  k: 10000,
+  k: 20000,
 };
 
 const evalPosition = (chess: Chess): number => {
@@ -26,6 +109,7 @@ const evalPosition = (chess: Chess): number => {
 
   let bestEval = 0;
 
+  const isEndGame = checkEndGame(chess);
   const board = chess.board();
   for (let i = 0; i < 8; ++i) {
     for (let j = 0; j < 8; ++j) {
@@ -34,6 +118,12 @@ const evalPosition = (chess: Chess): number => {
         continue;
       }
       bestEval += pieceToValue[piece.type] * (piece.color === "w" ? 1 : -1);
+      bestEval += squareTableEval(
+        piece.type,
+        piece.color,
+        i * 8 + j,
+        isEndGame,
+      );
     }
   }
 
