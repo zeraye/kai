@@ -29,9 +29,7 @@ interface GameProps {
 }
 
 const Game = ({ player, setPageHandler }: GameProps) => {
-  const [chess, setChess] = useState(
-    new Chess("8/pp6/8/2k1K2P/8/8/1p6/8 w - - 0 42"),
-  );
+  const [chess, setChess] = useState(new Chess());
   const [analysis, setAnalysis] = useState<AnalysisType>(defaultEmptyAnalysis);
   const [timeLimit, setTimeLimit] = useState<TimeLimitType>(defaultTimeLimit);
   const [lastMove, setLastMove] = useState<Move | null>(null);
