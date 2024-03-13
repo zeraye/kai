@@ -21,7 +21,7 @@ const App = () => {
   return page === "Menu" ? (
     <Menu setPageHandler={setPageHandler} setPlayerHandler={setPlayerHandler} />
   ) : (
-    <Game player={player} />
+    <Game player={player} setPageHandler={setPageHandler} />
   );
 };
 
