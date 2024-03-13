@@ -1,3 +1,4 @@
+import { Box, Button, ButtonGroup, Typography } from "@mui/material";
 import { BLACK, Color, WHITE } from "chess.js";
 
 import { PageType } from "../../../interfaces/PageType";
@@ -8,34 +9,29 @@ interface MenuProps {
 }
 
 const Menu = ({ setPageHandler, setPlayerHandler }: MenuProps) => {
+  const startGame = (color: Color) => {
+    setPlayerHandler(color);
+    setPageHandler("Game");
+  };
+
   return (
     <div
       style={{
         display: "grid",
         placeItems: "center",
-        width: "100%",
         minHeight: "100vh",
       }}
     >
-      <div style={{ display: "grid" }}>
-        <p>Choose your color</p>
-        <button
-          onClick={() => {
-            setPlayerHandler(WHITE);
-            setPageHandler("Game");
-          }}
+      <Box sx={{ display: "grid" }}>
+        <Typography variant="h4">Choose your color</Typography>
+        <ButtonGroup
+          variant="outlined"
+          style={{ margin: "auto", padding: "1em" }}
         >
-          White
-        </button>
-        <button
-          onClick={() => {
-            setPlayerHandler(BLACK);
-            setPageHandler("Game");
-          }}
-        >
-          Black
-        </button>
-      </div>
+          <Button onClick={() => startGame(WHITE)}>White</Button>
+          <Button onClick={() => startGame(BLACK)}>Black</Button>
+        </ButtonGroup>
+      </Box>
     </div>
   );
 };
