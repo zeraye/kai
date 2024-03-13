@@ -10,21 +10,32 @@ interface AnalysisProps {
 const Analysis = ({ analysis }: AnalysisProps) => {
   return (
     <Box>
-      <TextWithData text="Depth searched" data={analysis.depth} />
       <TextWithData
-        text="Evaluation"
+        text="Depth"
+        data={analysis.depth}
+        tooltip="Depth searched"
+      />
+      <TextWithData
+        text="Eval"
         data={(analysis.evaluation / 100).toFixed(2)}
+        tooltip="Evaluation"
       />
       <TextWithData
         text="Best move"
         data={analysis.bestMove ? analysis.bestMove.san : "-"}
+        tooltip="Best move"
       />
-      <TextWithData text="Analysed nodes" data={analysis.analysedNodes} />
       <TextWithData
-        text="Analysed nodes per second"
+        text="Nodes"
+        data={analysis.analysedNodes}
+        tooltip="Analysed nodes"
+      />
+      <TextWithData
+        text="Nodes per second"
         data={((1000 * analysis.analysedNodes) / analysis.calcTimeMs).toFixed(
           0,
         )}
+        tooltip="Analysed nodes per second"
       />
     </Box>
   );
