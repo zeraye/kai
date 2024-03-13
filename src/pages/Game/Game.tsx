@@ -1,6 +1,6 @@
 import { Chess, Color, Move, WHITE } from "chess.js";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AnalysisType from "../../../interfaces/AnalysisType";
 import TimeLimitType from "../../../interfaces/TimeLimitType";
