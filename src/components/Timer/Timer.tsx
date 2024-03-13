@@ -1,4 +1,7 @@
+import { Box, Divider } from "@mui/material";
+
 import TimeLimitType from "../../../interfaces/TimeLimitType";
+import TimerText from "./TimerText/TimerText";
 
 interface TimerProps {
   timeLimit: TimeLimitType;
@@ -6,11 +9,15 @@ interface TimerProps {
 
 const Timer = ({ timeLimit }: TimerProps) => {
   return (
-    <div style={{ textAlign: "center", padding: "3em" }}>
-      <h1>{`${new Date(timeLimit.black).getMinutes()}:${new Date(timeLimit.black).getSeconds().toLocaleString("en-US", { minimumIntegerDigits: 2 })}`}</h1>
-      <hr />
-      <h1>{`${new Date(timeLimit.white).getMinutes()}:${new Date(timeLimit.white).getSeconds().toLocaleString("en-US", { minimumIntegerDigits: 2 })}`}</h1>
-    </div>
+    <Box
+      style={{
+        padding: "3em",
+      }}
+    >
+      <TimerText timeLimit={timeLimit.black} />
+      <Divider />
+      <TimerText timeLimit={timeLimit.white} />
+    </Box>
   );
 };
 
