@@ -4,6 +4,7 @@ import { BLACK, Chess, Color, Move, WHITE } from "chess.js";
 import { useEffect, useState } from "react";
 
 import AnalysisType from "../../../interfaces/AnalysisType";
+import { HeuristicsType } from "../../../interfaces/HeuristicsType";
 import PieceType from "../../../interfaces/PieceType";
 import HighlightedSquare from "./HighlightedSquare/HighlightedSquare";
 import Piece from "./Piece/Piece";
@@ -13,6 +14,7 @@ interface ChessboardProps {
   setAnalysis: React.Dispatch<React.SetStateAction<AnalysisType>>;
   player: Color;
   setLastMoveHandler: (newLastMove: Move) => void;
+  heuristics: HeuristicsType;
 }
 
 const Chessboard = ({
@@ -20,6 +22,7 @@ const Chessboard = ({
   setAnalysis,
   player,
   setLastMoveHandler,
+  heuristics,
 }: ChessboardProps) => {
   const [pieces, setPieces] = useState<PieceType[]>([]);
   const [selectedPiece, setSelectedPiece] = useState<PieceType | null>(null);
@@ -53,7 +56,7 @@ const Chessboard = ({
     };
 
     if (player === BLACK) {
-      mmWorker.postMessage(chess.fen());
+      mmWorker.postMessage({ fen: chess.fen(), heuristics: heuristics });
     }
 
     setWorker(mmWorker);
@@ -107,7 +110,7 @@ const Chessboard = ({
     setSelectedPiece(null);
     setPossibleMovesWithSelectedPiece([]);
     setBlockSelecting(true);
-    worker.postMessage(chess.fen());
+    worker.postMessage({ fen: chess.fen(), heuristics: heuristics });
   };
 
   return (

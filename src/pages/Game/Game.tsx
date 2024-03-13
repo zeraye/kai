@@ -4,6 +4,7 @@ import { Chess, Color, Move, WHITE } from "chess.js";
 import { useEffect, useState } from "react";
 
 import AnalysisType from "../../../interfaces/AnalysisType";
+import { HeuristicsType } from "../../../interfaces/HeuristicsType";
 import { PageType } from "../../../interfaces/PageType";
 import TimeLimitType from "../../../interfaces/TimeLimitType";
 import Analysis from "../../components/Analysis/Analysis";
@@ -26,9 +27,10 @@ const defaultEmptyAnalysis = {
 interface GameProps {
   player: Color;
   setPageHandler: (newPage: PageType) => void;
+  heuristics: HeuristicsType;
 }
 
-const Game = ({ player, setPageHandler }: GameProps) => {
+const Game = ({ player, setPageHandler, heuristics }: GameProps) => {
   const [chess, setChess] = useState(new Chess());
   const [analysis, setAnalysis] = useState<AnalysisType>(defaultEmptyAnalysis);
   const [timeLimit, setTimeLimit] = useState<TimeLimitType>(defaultTimeLimit);
@@ -112,6 +114,7 @@ const Game = ({ player, setPageHandler }: GameProps) => {
         setAnalysis={setAnalysis}
         player={player}
         setLastMoveHandler={setLastMoveHandler}
+        heuristics={heuristics}
       />
       <Timer timeLimit={timeLimit} />
       <Button onClick={() => setOpen(true)}>Resign</Button>

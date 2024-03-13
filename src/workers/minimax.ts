@@ -1,5 +1,7 @@
 import { Chess, Color, Move, PieceSymbol, WHITE } from "chess.js";
 
+import { HeuristicsType } from "../../interfaces/HeuristicsType";
+
 const MAX_DEPTH = 99;
 const TIME_LIMIT_MS = 3000;
 
@@ -95,7 +97,7 @@ const pieceToValue: { [type in PieceSymbol]: number } = {
   k: 20000,
 };
 
-const evalPosition = (chess: Chess): number => {
+const complexEvalPosition = (chess: Chess): number => {
   if (chess.isGameOver()) {
     if (chess.isDraw()) {
       return 0;
@@ -130,6 +132,41 @@ const evalPosition = (chess: Chess): number => {
   return bestEval;
 };
 
+const simpleEvalPosition = (chess: Chess): number => {
+  if (chess.isGameOver()) {
+    if (chess.isDraw()) {
+      return 0;
+    }
+    if (chess.turn() === "w") {
+      return -Infinity;
+    } else {
+      return Infinity;
+    }
+  }
+
+  let bestEval = 0;
+
+  const board = chess.board();
+  for (let i = 0; i < 8; ++i) {
+    for (let j = 0; j < 8; ++j) {
+      const piece = board[i][j];
+      if (!piece) {
+        continue;
+      }
+      bestEval += piece.color === "w" ? 1 : -1;
+    }
+  }
+
+  return bestEval;
+};
+
+const evalPosition = (chess: Chess, heuristics: HeuristicsType): number => {
+  if (heuristics === "simple") {
+    return simpleEvalPosition(chess);
+  }
+  return complexEvalPosition(chess);
+};
+
 const CalcMiniMaxRecursive = (
   chess: Chess,
   alpha: number,
@@ -140,6 +177,7 @@ const CalcMiniMaxRecursive = (
   analyse: {
     analysedNodes: number;
   },
+  heuristics: HeuristicsType,
 ): number => {
   if (Date.now() - start > TIME_LIMIT_MS)
     throw new Error("Time limit exceeded");
@@ -147,7 +185,7 @@ const CalcMiniMaxRecursive = (
   analyse.analysedNodes++;
 
   if (chess.isGameOver() || depth === 0) {
-    return evalPosition(chess);
+    return evalPosition(chess, heuristics);
   }
 
   let bestEval = Infinity * (!isMax ? 1 : -1);
@@ -164,6 +202,7 @@ const CalcMiniMaxRecursive = (
       !isMax,
       start,
       analyse,
+      heuristics,
     );
 
     if (isMax) {
@@ -189,6 +228,7 @@ const CalcMiniMax = (
   analyse: {
     analysedNodes: number;
   },
+  heuristics: HeuristicsType,
 ): [Move | null, number] => {
   const isMax = chess.turn() === "w";
 
@@ -210,6 +250,7 @@ const CalcMiniMax = (
       !isMax,
       start,
       analyse,
+      heuristics,
     );
 
     if ((newEval > bestEval && isMax) || (newEval < bestEval && !isMax)) {
@@ -228,7 +269,7 @@ const CalcMiniMax = (
   return [bestMove, bestEval];
 };
 
-const MakeMoveMiniMax = (chess: Chess) => {
+const MakeMoveMiniMax = (chess: Chess, heuristics: HeuristicsType) => {
   let bestMove: Move | null = null;
   let bestEval: number | null = null;
 
@@ -242,7 +283,13 @@ const MakeMoveMiniMax = (chess: Chess) => {
 
   for (let depth = 1; depth <= MAX_DEPTH; ++depth) {
     try {
-      [bestMove, bestEval] = CalcMiniMax(chess, depth, start, analyse);
+      [bestMove, bestEval] = CalcMiniMax(
+        chess,
+        depth,
+        start,
+        analyse,
+        heuristics,
+      );
       postMessage({
         depth: depth,
         evaluation: bestEval,
@@ -271,5 +318,7 @@ const MakeMoveMiniMax = (chess: Chess) => {
 };
 
 onmessage = function (event) {
-  MakeMoveMiniMax(new Chess(event.data));
+  const fen = event.data.fen;
+  const heuristics = event.data.heuristics;
+  MakeMoveMiniMax(new Chess(fen), heuristics);
 };
