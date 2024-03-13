@@ -1,4 +1,7 @@
+import { Box } from "@mui/material";
+
 import AnalysisType from "../../../interfaces/AnalysisType";
+import TextWithData from "./TextWithData/TextWithData";
 
 interface AnalysisProps {
   analysis: AnalysisType;
@@ -6,23 +9,24 @@ interface AnalysisProps {
 
 const Analysis = ({ analysis }: AnalysisProps) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div>
-        <h3>Depth searched: {analysis.depth}</h3>
-        <h3>Evaluation: {(analysis.evaluation / 100).toFixed(2)}</h3>
-        <h3>Best move: {analysis.bestMove ? analysis.bestMove.san : "-"}</h3>
-        <h3>Analysed nodes: {analysis.analysedNodes}</h3>
-        <h3>
-          Analysed nodes per second:{" "}
-          {(analysis.analysedNodes / (analysis.calcTimeMs / 1000)).toFixed(0)}
-        </h3>
-      </div>
-    </div>
+    <Box>
+      <TextWithData text="Depth searched" data={analysis.depth} />
+      <TextWithData
+        text="Evaluation"
+        data={(analysis.evaluation / 100).toFixed(2)}
+      />
+      <TextWithData
+        text="Best move"
+        data={analysis.bestMove ? analysis.bestMove.san : "-"}
+      />
+      <TextWithData text="Analysed nodes" data={analysis.analysedNodes} />
+      <TextWithData
+        text="Analysed nodes per second"
+        data={((1000 * analysis.analysedNodes) / analysis.calcTimeMs).toFixed(
+          0,
+        )}
+      />
+    </Box>
   );
 };
 
